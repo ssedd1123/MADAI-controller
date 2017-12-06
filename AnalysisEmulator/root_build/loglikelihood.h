@@ -27,7 +27,7 @@
 class loglikelihood
 {
 public:
-	loglikelihood(RunMaster t_controller = RunMaster("/mnt/analysis/hira/tsangc/AnalysisEmulator/DataCreator", "DataCreator/")): controller_(t_controller)
+	loglikelihood(RunMaster t_controller = RunMaster("/mnt/analysis/hira/tsangc/DataCreator", "DataCreator/")): controller_(t_controller)
 	{};
 
 	void Set(double scales, double nuggets)
@@ -100,60 +100,5 @@ private:
 	std::vector<int> excluded_list;
 	double tot_logprob;
 };
-/*
-class loglikelihood_multi
-{
-public:
-	loglikelihood_multi()
-	{
-		list_calculate_.push_back(RunMaster("/mnt/analysis/hira/tsangc/AnalysisEmulator/DataCreator", "DataCreator/"));
-		list_calculate_.push_back(RunMaster("/mnt/analysis/hira/tsangc/AnalysisEmulator/DataCreator2", "DataCreator/"));
-		list_calculate_.push_back(RunMaster("/mnt/analysis/hira/tsangc/AnalysisEmulator/DataCreator3", "DataCreator/"));
-		list_calculate_.push_back(RunMaster("/mnt/analysis/hira/tsangc/AnalysisEmulator/DataCreator4", "DataCreator/"));	
-		list_calculate_.push_back(RunMaster("/mnt/analysis/hira/tsangc/AnalysisEmulator/DataCreator5", "DataCreator/"));
-	};
 
-	void ExcludeRun()
-	{
-		std::vector<vector<int>> excluded_list;
-        	std::vector<int> temp;
-        	int row_index = -1;
-        	int partition = 21;
-        	for(int i = 0; i < list_calculate_[0].GetEndNo() - list_calculate_[0].GetStartNo() + 1; ++i)
-        	{
-         	       if( i%partition == 0)
-         	       {
-         	               excluded_list.push_back(temp);
-         	               ++row_index;
-         	       }
-         	       excluded_list[row_index].push_back(i + list_calculate_[0].GetStartNo());
-       	 	}
-
-
-		for(int i = 0; i < list_calculate_.size(); ++i)
-			list_calculate_[i].ExcludeRun(excluded_list[i]);
-
-	};
-
-	double Validation(double scale, double nuggets)
-	{
-		std::vector<std::thread> jobs;
-		double prob = 0;
-		for(auto& calculate : list_calculate_ )
-			jobs.emplace_back(&loglikelihood::Validation, std::ref(calculate), scale, nuggets);
-
-		for(auto& t : jobs)
-			t.join();
-
-		for(auto& calculate : list_calculate_ )
-			prob += calculate.GetLogProb();
-
-		return prob;
-	}
-private:
-	
-	std::vector<loglikelihood> list_calculate_;
-};
-
-*/
 #endif
