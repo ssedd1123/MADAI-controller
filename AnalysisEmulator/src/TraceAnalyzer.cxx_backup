@@ -1,0 +1,39 @@
+#include "TraceAnalyzer.h"
+
+void TraceAnalyzer::AnalyzeTrace(const std::string& t_csv, const std::string& t_path, unsigned int t_downscale)
+{
+	// clear anything from previous analysis
+	mean_.clear(); std_dev_.clear(); scaled_dev_.clear(); best_.clear();
+	name_.clear();
+
+	// downscale the csv file for faster performance
+	std::string linked_name("temp.csv");
+	system(("madai_subsample_text_file " + std::to_string(t_downscale) + " " + t_csv + " " + t_path + "/" + linked_name).c_str());
+
+	// create a soft link for the csv file to the target home directory
+	system(("ln -sf " + t_csv + " " + t_path + "/" + linked_name).c_str());
+
+	ProcessPipe madai_analyze("madai_analyze_trace " + t_path + " " + linked_name);
+	// first row is just header, will be discarded
+	madai_analyze.GetOutput();
+
+	// fill the content
+	std::string name;
+	double mean, std_dev, scaled_dev, best;
+	std::stringstream ss(madai_analyze.GetOutput());
+	while(ss >> name >> mean >> std_dev >> scaled_dev >> best)
+	{
+		name_.push_back(name);
+		mean_.push_back(mean);
+		std_dev_.push_back(std_dev);
+		scaled_dev_.push_back(scaled_dev);
+		best_.push_back(best);
+		
+		// read new line
+		ss.str("");
+		ss.clear();
+		ss << madai_analyze.GetOutput();
+	}
+	
+}
+

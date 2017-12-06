@@ -1,0 +1,78 @@
+#include "ProcessPipe.h"
+#include "test.h"
+#include "TreeFiller.h"
+#include "EmulatorInterface.h"
+#include "DataSelector.h"
+#include "RunInputReader.h"
+#include "RunMaster.h"
+#include "EmulatorConstants.h"
+#include "CSVReader.h"
+#include "SettingSetter.h"
+#include "Data.h"
+#include "TFile.h"
+#include "TH2.h"
+#include <vector>
+#include <iostream>
+#include <cmath>
+#include <fstream>
+#include <regex>
+#include <iomanip>
+#include <regex>
+
+class loglikelihood
+{
+public:
+	loglikelihood() : controller("/mnt/analysis/hira/tsangc/AnalysisEmulator/DataCreator", "DataCreator/")
+	{
+		// list of excluded runs
+		std::vector<int> temp;
+		int row_index = -1;
+		int partition = 8;
+		for(int i = 0; i < controller.GetEndNo() - controller.GetStartNo() + 1; ++i)
+		{
+			if( i%partition == 0)
+			{
+				excluded_list.push_back(temp);
+				++row_index;
+			}
+			excluded_list[row_index].push_back(i + controller.GetStartNo());
+		}
+	};
+
+
+	double Eval(double scales, double nuggets)
+	{
+		for(unsigned int i = 0; i < excluded_list.size(); ++i)
+		{
+			controller.ExcludeRun(excluded_list[i]);
+			double chi2tot = 0;
+			double prob_sum = 0;
+	
+			controller.SetNuggets(t_nuggets);
+			controller.SetScales(t_scales);
+			for(unsigned int k = 0; k < t_excluded.size(); ++k)
+			{
+				std::vector<Data> data = controller.RunEmulator(controller.GetParFromRun(t_excluded[k]));
+				std::vector<Data> from_run = controller.GetVarFromRun(t_excluded[k]);
+				double prob = 0;
+				for(unsigned int u = 0; u < data.size(); ++u)
+				{
+					Data from_run = controller.GetVarFromRun(t_excluded[k], u);
+					prob += exp( -pow((from_run.val - data[u].val)/data[u].err, 2))/(sqrt(2*M_PI)*data[u].err);
+				}
+				prob_sum += prob;
+			}
+		}
+		return prob_sum;
+	};
+
+	/*TFile *file = new TFile("chi2.root", "RECREATE");
+	file->cd();
+	th2f->Write("chi2");
+	file->Close();*/
+private:
+	RunMaster controller;
+	std::vector<std::vector<int>> excluded_list;
+};
+
+
